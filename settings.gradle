@@ -1,0 +1,1 @@
+include ':app', ':nice_annotation', ':nice_compiler', ':nice_api'
