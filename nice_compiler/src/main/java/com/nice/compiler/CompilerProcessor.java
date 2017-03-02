@@ -57,7 +57,6 @@ public class CompilerProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv)
     {
 
-        System.out.print("888888888888888888888888888888888888888888888");
 
         messager.printMessage(Diagnostic.Kind.NOTE , "process...");
         mProxyMap.clear();
@@ -65,23 +64,30 @@ public class CompilerProcessor extends AbstractProcessor {
         Set<? extends Element> elesWithRouter = roundEnv.getElementsAnnotatedWith(Router.class);
         for (Element element : elesWithRouter)
         {
+
             checkAnnotationValid(element, Router.class);
 
+            //test
             VariableElement variableElement = (VariableElement) element;
+
             //class type
             TypeElement classElement = (TypeElement) variableElement.getEnclosingElement();
-            //full class name
+            //full class name mainActivity
             String fqClassName = classElement.getQualifiedName().toString();
 
             ProxyInfo proxyInfo = mProxyMap.get(fqClassName);
+
             if (proxyInfo == null)
             {
                 proxyInfo = new ProxyInfo(elementUtils, classElement);
+                //一个类对应一个proxyInfo
                 mProxyMap.put(fqClassName, proxyInfo);
             }
 
+            //获取使用注解的那个R.id.test
             Router RouterAnnotation = variableElement.getAnnotation(Router.class);
             int id = RouterAnnotation.value();
+            // R.id.test 和 test 放入proxyInfo中
             proxyInfo.injectVariables.put(id , variableElement);
         }
 
@@ -90,18 +96,14 @@ public class CompilerProcessor extends AbstractProcessor {
             ProxyInfo proxyInfo = mProxyMap.get(key);
             try
             {
-                JavaFileObject jfo = processingEnv.getFiler().createSourceFile(
-                        proxyInfo.getProxyClassFullName(),
-                        proxyInfo.getTypeElement());
+                JavaFileObject jfo = processingEnv.getFiler().createSourceFile(proxyInfo.getProxyClassFullName(),proxyInfo.getTypeElement());
                 Writer writer = jfo.openWriter();
                 writer.write(proxyInfo.generateJavaCode());
                 writer.flush();
                 writer.close();
             } catch (IOException e)
             {
-                error(proxyInfo.getTypeElement(),
-                        "Unable to write injector for type %s: %s",
-                        proxyInfo.getTypeElement(), e.getMessage());
+                error(proxyInfo.getTypeElement(),"Unable to write injector for type %s: %s",proxyInfo.getTypeElement(), e.getMessage());
             }
 
         }
